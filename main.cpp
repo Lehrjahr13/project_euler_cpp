@@ -782,11 +782,11 @@ int euler_zwanzig() {
     return sum;
 }
 
-int sum_of_divisors(int iNum) {
+long sum_of_divisors(int iNum) {
     if (0 == iNum) return 0;
     if (1 == iNum) return 1;
     //prüfung auf 1 und iNum selbst überspringen
-    int iSum = 1;
+    long iSum = 1;
     if (2 == iNum) return iSum;
     unsigned long sqrtiNum = sqrt(iNum);
     //ungerade sind nur durch ungerade teilbar -> gerade überspringen
@@ -794,19 +794,20 @@ int sum_of_divisors(int iNum) {
         for (int i = 3; i <= sqrtiNum; i += 2) {
             if (iNum % i == 0) {
                 iSum += i;
-                iSum += (iNum / i);
+                //doppeltes addieren von Zahlen vermeiden
+                if (iNum / i != i) {
+                    iSum += iNum / i;
+                }
             }
         }
     } else {
-        iSum += 2;
-        //doppeltes addieren von 2 bei teilern von 4 vermeiden
-        if (iNum / 2 != 2) {
-            iSum += iNum / 2;
-        }
-        for (int i = 3; i <= sqrtiNum; i++) {
+        for (int i = 2; i <= sqrtiNum; i++) {
             if (iNum % i == 0) {
                 iSum += i;
-                iSum += iNum / i;
+                //doppeltes addieren von Zahlen vermeiden
+                if (iNum / i != i) {
+                    iSum += iNum / i;
+                }
             }
         }
     }
@@ -815,9 +816,9 @@ int sum_of_divisors(int iNum) {
 
 int euler_einundzwanzig() {
     int b;
-    
+
     int sum = 0;
-    
+
     for (int a = 1; a <= 10000; a++) {
         b = sum_of_divisors(a);
         if (sum_of_divisors(b) == a && a != b) {
@@ -826,6 +827,75 @@ int euler_einundzwanzig() {
         }
     }
     return sum;
+}
+
+void euler_zweiundzwanzig() {
+    //siehe euler_22.php
+}
+
+int euler_dreiundzwanzig() {
+#define SIZE 28123
+
+    std::vector<int> abundantNums;
+    int abuSumNums[SIZE + 1] = {0};
+    long sum = 0;
+    long abuSum = 0;
+    for (int i = 12; i <= SIZE - 12; i++) {
+        if (sum_of_divisors(i) > i) {
+            abundantNums.push_back(i);
+        }
+    }
+    for (int a = 0; a < abundantNums.size(); a++) {
+        for (int b = a; b < abundantNums.size(); b++) {
+            abuSum = abundantNums[a] + abundantNums[b];
+            if (20161 == abuSum) {
+                cout << abundantNums[a] << " + " << abundantNums[b] << endl;
+            }
+            if (abuSum <= SIZE + 1 && 0 == abuSumNums[abuSum]) {
+                abuSumNums[abuSum] = 1;
+
+            }
+        }
+    }
+
+    for (int i = 0; i <= SIZE + 1; i++) {
+        if (0 == abuSumNums[i]) {
+            //cout << "ist nicht als summe darstellbar: " << i << endl;
+            sum += i;
+        }
+    }
+    return sum;
+}
+
+void euler_vierundzwanzig() {
+
+    // siehe Papier-> 999999 / 9! usw. dann verschieben von links nach rechts
+}
+
+long euler_fuenfundzwanzig() {
+    
+    
+    
+    long count = 1;
+    
+    string strPre = 1;
+    string strNext = 2;
+    //static_cast<ostringstream*> (&(ostringstream() << pre))->str();
+    int sum = 0;
+    int placeholder = 0;
+
+    while (next <= fiboNum) {
+        if (next % 2 == 0) {
+            sum += next;
+        }
+        placeholder = next;
+        next += pre;
+        pre = placeholder;
+
+    }
+    
+    
+    return count;
 }
 
 int main(int argc, char** argv) {
@@ -846,5 +916,8 @@ int main(int argc, char** argv) {
     //cout << "ergebnis für Euler Nr.18 = " << euler_achtzehn() << endl;
     //cout << "ergebnis für Euler Nr.19 = " << euler_neunzehn() << endl;
     //cout << "ergebnis für Euler Nr.20 = " << euler_zwanzig() << endl;
-    cout << "ergebnis für Euler Nr.21 = " << euler_einundzwanzig() << endl;
+    //cout << "ergebnis für Euler Nr.21 = " << euler_einundzwanzig() << endl;
+    //cout << "ergebnis für Euler Nr.23 = " << euler_dreiundzwanzig() << endl;
+    //cout << "ergebnis für Euler Nr.24 = " << euler_vierundzwanzig() << endl;
+    cout << "ergebnis für Euler Nr.24 = " << euler_fuenfundzwanzig() << endl;
 }

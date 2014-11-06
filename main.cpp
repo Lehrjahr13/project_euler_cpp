@@ -868,33 +868,92 @@ int euler_dreiundzwanzig() {
 }
 
 void euler_vierundzwanzig() {
-
     // siehe Papier-> 999999 / 9! usw. dann verschieben von links nach rechts
 }
 
-long euler_fuenfundzwanzig() {
-    
-    
-    
-    long count = 1;
-    
-    string strPre = 1;
-    string strNext = 2;
-    //static_cast<ostringstream*> (&(ostringstream() << pre))->str();
-    int sum = 0;
-    int placeholder = 0;
+string sumStrings(string numberA, string numberB) {
+    //swap numbers for calculation algoithm reaons
+    if (numberA.size() < numberB.size()) {
+        swap(numberA, numberB);
+    }
+    int stringLengthA = numberA.size();
+    int stringLengthB = numberB.size();
+    //length of the new number +1 because of possible overflow
+    int newNumberSize = stringLengthA + 1;
+    std::vector<int> newNumberVec;
+    //setting the size so we can add new digits from right to left
+    newNumberVec.resize(newNumberSize);
+    bool overflow = false;
+    int digitA, digitB, newDigit;
 
-    while (next <= fiboNum) {
-        if (next % 2 == 0) {
-            sum += next;
+    int i = 0;
+    while (i <= stringLengthB || overflow) {
+        //go through all digits for each number and take their values
+        if (i < stringLengthA) {
+            digitA = numberA[stringLengthA - 1 - i] - '0';
+        } else {
+            digitA = 0;
         }
-        placeholder = next;
-        next += pre;
-        pre = placeholder;
-
+        if (i < stringLengthB) {
+            digitB = numberB[stringLengthB - 1 - i] - '0';
+        } else {
+            digitB = 0;
+        }
+        
+        newDigit = digitA + digitB;
+        //if overflow was true in the previous round we have add +1
+        if (overflow) newDigit++;
+        
+        //cout << "newDigit: " << newDigit << ", A: " << digitA << ", B: " << digitB <<endl;
+        //no overflow so simply add both digits and asign them as new digit for new number
+        if (newDigit <= 9) {
+            overflow = false;
+            newNumberVec[newNumberSize - 1 - i] = newDigit;
+            //cout << "new stringnumber(<10): " << newNumberVec[newNumberSize - 1 - i] << endl;
+        //overflow -> look up last digit with modulo and take it as new digit for new number    
+        } else if (newDigit >= 10) {
+            overflow = true;
+            newDigit %= 10;
+            newNumberVec[newNumberSize - 1 - i] = newDigit;
+            //cout << "new stringnumber(>10): " << newNumberVec[newNumberSize - 1 - i] << endl;
+        }
+        i++;
+        
     }
     
+    std::ostringstream myNewNumber;
+    if (0 == newNumberVec[0]) {
+        newNumberVec.erase(newNumberVec.begin());
+    }
+    //converting vector to string
+    if (!newNumberVec.empty()) {
+        // Convert all but the last element to avoid a trailing
+        std::copy(newNumberVec.begin(), newNumberVec.end() - 1,
+                std::ostream_iterator<int>(myNewNumber));
+
+        // Now add the last element with no delimiter
+        myNewNumber << newNumberVec.back();
+    }
+
+    return myNewNumber.str();
     
+}
+
+
+long euler_fuenfundzwanzig() {
+    long count = 2;
+    
+    string strPre = "1";
+    string strNext = "1";
+    string placeholder = "";
+
+    while (strNext.size() < 1000) {
+        count++;
+        placeholder = strNext;
+        strNext = sumStrings(strPre, strNext);
+        strPre = placeholder;
+
+    }
     return count;
 }
 
@@ -906,7 +965,7 @@ int main(int argc, char** argv) {
     //cout << "ergebnis für Euler Nr.5 = " << euler_fuenf() << endl;
     //cout << "ergebnis für Euler Nr.6 = " << euler_sechs() << endl;
     //cout << "ergebnis für Euler Nr.7 = " << euler_sieben() << endl;
-    // cout << "ergebnis für Euler Nr.8 = " << euler_acht() << endl;
+    //cout << "ergebnis für Euler Nr.8 = " << euler_acht() << endl;
     //cout << "ergebnis für Euler Nr.9 = " << euler_neun() << endl;
     //cout << "ergebnis für Euler Nr.10 = " << euler_zehn() << endl;
     //cout << "ergebnis für Euler Nr.12 = " << euler_zwoelf() << endl;
@@ -919,5 +978,6 @@ int main(int argc, char** argv) {
     //cout << "ergebnis für Euler Nr.21 = " << euler_einundzwanzig() << endl;
     //cout << "ergebnis für Euler Nr.23 = " << euler_dreiundzwanzig() << endl;
     //cout << "ergebnis für Euler Nr.24 = " << euler_vierundzwanzig() << endl;
-    cout << "ergebnis für Euler Nr.24 = " << euler_fuenfundzwanzig() << endl;
+    //cout << "ergebnis für Euler Nr.24 = " << euler_fuenfundzwanzig() << endl;
+    
 }

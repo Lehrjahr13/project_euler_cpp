@@ -26,6 +26,12 @@ fromString(const std::string& s) {
     return t;
 }
 
+/**
+ * check if primZahl is really prime
+ *  
+ * @param primZahl
+ * @return bool
+ */
 bool primeCalc(unsigned long long int primZahl) {
     if (primZahl == 2) return true;
     if (primZahl % 2 == 0) return false;
@@ -899,18 +905,18 @@ string sumStrings(string numberA, string numberB) {
         } else {
             digitB = 0;
         }
-        
+
         newDigit = digitA + digitB;
         //if overflow was true in the previous round we have add +1
         if (overflow) newDigit++;
-        
+
         //cout << "newDigit: " << newDigit << ", A: " << digitA << ", B: " << digitB <<endl;
         //no overflow so simply add both digits and asign them as new digit for new number
         if (newDigit <= 9) {
             overflow = false;
             newNumberVec[newNumberSize - 1 - i] = newDigit;
             //cout << "new stringnumber(<10): " << newNumberVec[newNumberSize - 1 - i] << endl;
-        //overflow -> look up last digit with modulo and take it as new digit for new number    
+            //overflow -> look up last digit with modulo and take it as new digit for new number    
         } else if (newDigit >= 10) {
             overflow = true;
             newDigit %= 10;
@@ -918,9 +924,9 @@ string sumStrings(string numberA, string numberB) {
             //cout << "new stringnumber(>10): " << newNumberVec[newNumberSize - 1 - i] << endl;
         }
         i++;
-        
+
     }
-    
+
     std::ostringstream myNewNumber;
     if (0 == newNumberVec[0]) {
         newNumberVec.erase(newNumberVec.begin());
@@ -936,13 +942,12 @@ string sumStrings(string numberA, string numberB) {
     }
 
     return myNewNumber.str();
-    
-}
 
+}
 
 long euler_fuenfundzwanzig() {
     long count = 2;
-    
+
     string strPre = "1";
     string strNext = "1";
     string placeholder = "";
@@ -957,16 +962,129 @@ long euler_fuenfundzwanzig() {
     return count;
 }
 
+int euler_siebenundzwanzig() {
+    int range = 100000;
+    int n;
+    int max_n = 0;
+    long numToCheck = 0;
+    int product = 0;
+    for (int a = -1 * range; a < range; a++) {
+        for (int b = -1 * range; b < range; b++) {
+            n = 0;
+            numToCheck = n * n + a * n + b;
+            if (numToCheck < 0) {
+                continue;
+            }
+            while (primeCalc(numToCheck)) {
+                n++;
+                numToCheck = n * n + a * n + b;
+                if (numToCheck < 0) {
+                    break;
+                }
+            }
+            if (n > max_n) {
+                max_n = n;
+                product = a * b;
+                cout << "current values for a and b: " << a << ", " << b << endl;
+            }
+        }
+    }
+
+    return max_n;
+}
+
+long euler_achtundzwanzig() {
+    int smallestSpiralSize = 3;
+    long sum = 1;
+    const int startRightBottom = 3;
+    const int startLeftBottom = 5;
+    const int startLeftTop = 7;
+    const int startRightTop = 9;
+    int rightBottom = startRightBottom;
+    int leftBottom = startLeftBottom;
+    int leftTop = startLeftTop;
+    int rightTop = startRightTop;
+    int growth = 0;
+    for (int i = smallestSpiralSize; i <= 1001; i += 2) {
+        sum += rightBottom + leftBottom + leftTop + rightTop;
+        growth += 8;
+        leftBottom += growth + startLeftBottom - 1;
+        rightBottom += growth + startRightBottom - 1;
+        rightTop += growth + startRightTop - 1;
+        leftTop += growth + startLeftTop - 1;
+        //cout << "new corners: "  << rightBottom << ", " <<  leftBottom << ", " << leftTop << ", " << rightTop << endl;
+    }
+
+    return sum;
+}
+
+long euler_neunundzwanzig() {
+#define LOWERLIMIT 2
+#define UPPERLIMIT 100
+
+    int max = pow((UPPERLIMIT - LOWERLIMIT) + 1, 2);
+    /*
+    long power = 0;
+    long powers[29*29] = {0};
+    bool found;
+    int doubles = 0;
+    for (int a = LOWERLIMIT; a <= UPPERLIMIT; a++) {
+        for (int b = LOWERLIMIT; b <= UPPERLIMIT; b++) {
+            power = pow(a, b);
+            found = false;
+            //check if number is already in array
+            for (int i = 0; i < max; i++) {
+                if (powers[i] == power) {
+                    found = true;
+                    //cout << "i: " << i << ", a: " << a << ", b:  " << b << endl;
+                    doubles++;
+                    break;
+                }
+
+            }
+            //if number is not in array, asign it to the first element where still 0
+            if (false == found) {
+                for (int i = 0; i < max; i++) {
+                    if (powers[i] == 0) {
+                        powers[i] = power;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    cout << "doubles found: " << doubles << endl;
+     */
+    for (int a = LOWERLIMIT; a <= UPPERLIMIT; a++) { //2
+        for (int b = LOWERLIMIT; b <= UPPERLIMIT; b++) { //6
+            int maxi = (int) (log(UPPERLIMIT) / log(a));
+            for (int i = 2; i <= maxi; i++) { //3
+                if (b % i == 0 || pow(a, (float) b/i) == a*i)  {
+                    if (pow(a, i) <= UPPERLIMIT && b / i >= LOWERLIMIT) {
+                        cout << "a: " << a << ", b: " << b << ", i: " << i << endl;
+                        max--;
+                    }
+                } else {
+                    continue;
+                }
+            }
+        }
+    }
+
+
+    return max;
+}
+
 int main(int argc, char** argv) {
-    //cout << "ergebnis für Euler Nr.1 = " << euler_eins() << endl;
-    //cout << "ergebnis für Euler Nr.2 = " <<euler_zwei(4000000) << endl;
-    //cout << "ergebnis für Euler Nr.3 = " << euler_drei(600851475143) << endl;
-    //cout << "ergebnis für Euler Nr.4 = " << euler_vier() << endl;
-    //cout << "ergebnis für Euler Nr.5 = " << euler_fuenf() << endl;
-    //cout << "ergebnis für Euler Nr.6 = " << euler_sechs() << endl;
-    //cout << "ergebnis für Euler Nr.7 = " << euler_sieben() << endl;
-    //cout << "ergebnis für Euler Nr.8 = " << euler_acht() << endl;
-    //cout << "ergebnis für Euler Nr.9 = " << euler_neun() << endl;
+    //cout << "ergebnis für Euler Nr.1  = " << euler_eins() << endl;
+    //cout << "ergebnis für Euler Nr.2  = " << euler_zwei(4000000) << endl;
+    //cout << "ergebnis für Euler Nr.3  = " << euler_drei(600851475143) << endl;
+    //cout << "ergebnis für Euler Nr.4  = " << euler_vier() << endl;
+    //cout << "ergebnis für Euler Nr.5  = " << euler_fuenf() << endl;
+    //cout << "ergebnis für Euler Nr.6  = " << euler_sechs() << endl;
+    //cout << "ergebnis für Euler Nr.7  = " << euler_sieben() << endl;
+    //cout << "ergebnis für Euler Nr.8  = " << euler_acht() << endl;
+    //cout << "ergebnis für Euler Nr.9  = " << euler_neun() << endl;
     //cout << "ergebnis für Euler Nr.10 = " << euler_zehn() << endl;
     //cout << "ergebnis für Euler Nr.12 = " << euler_zwoelf() << endl;
     //cout << "ergebnis für Euler Nr.14 = " << euler_vierzehn() << endl;
@@ -978,6 +1096,9 @@ int main(int argc, char** argv) {
     //cout << "ergebnis für Euler Nr.21 = " << euler_einundzwanzig() << endl;
     //cout << "ergebnis für Euler Nr.23 = " << euler_dreiundzwanzig() << endl;
     //cout << "ergebnis für Euler Nr.24 = " << euler_vierundzwanzig() << endl;
-    //cout << "ergebnis für Euler Nr.24 = " << euler_fuenfundzwanzig() << endl;
-    
+    //cout << "ergebnis für Euler Nr.25 = " << euler_fuenfundzwanzig() << endl;
+    //cout << "ergebnis für Euler Nr.27 = " << euler_siebenundzwanzig() << endl;
+    //cout << "ergebnis für Euler Nr.28 = " << euler_achtundzwanzig() << endl;
+    cout << "ergebnis für Euler Nr.29 = " << euler_neunundzwanzig() << endl;
+    cout << (int) pow(2, (float) 6 / (float) 3) << endl;
 }

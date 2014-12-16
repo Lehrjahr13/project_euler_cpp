@@ -14,9 +14,14 @@
 #include <stdio.h>
 #include <vector>
 #include <iterator>
-#include <time.h> 
+#include <time.h>
+#include <algorithm>
+
+#define uint64 unsigned long long
 
 using namespace std;
+
+bool isPenta(uint64);
 
 template<class T> T
 fromString(const std::string& s) {
@@ -33,6 +38,7 @@ fromString(const std::string& s) {
  * @return bool
  */
 bool primeCalc(unsigned long long int primZahl) {
+    if (primZahl == 1) return false;
     if (primZahl == 2) return true;
     if (primZahl % 2 == 0) return false;
     if (primZahl % 3 == 0 xor primZahl == 3) return false;
@@ -64,6 +70,56 @@ unsigned long long findNextPrim(unsigned long long int primZahl) {
     }
 
     return primZahl;
+}
+
+unsigned long long findPrevPrim(unsigned long long int primZahl) {
+    if (primZahl <= 2) {
+        return 0;
+    }
+    if (primZahl == 3) {
+        return 2;
+    }
+    primZahl -= 2;
+    /*/
+    string strNum = static_cast<ostringstream*> (&(ostringstream() << primZahl))->str();
+    int lastDigit = strNum[strNum.length()-1] - '0';
+    if (lastDigit % 2 == 0 || lastDigit == 0) {
+       primZahl--;
+    } else {
+        primZahl -= 2;
+    }
+    //*/
+    /*/
+    if (primZahl % 2 == 0) {
+        primZahl--;
+    } else {
+        primZahl -= 2;
+    }
+    //*/
+    while (!primeCalc(primZahl)) {
+        primZahl -= 2;
+        //cout << primZahl << endl;
+    }
+
+    return primZahl;
+}
+
+string vecToString(std::vector<int> Vector) {
+    std::ostringstream vectorString;
+    if (0 == Vector[0]) {
+        Vector.erase(Vector.begin());
+    }
+
+    if (!Vector.empty()) {
+        // Convert all but the last element to avoid a trailing
+        std::copy(Vector.begin(), Vector.end() - 1,
+                std::ostream_iterator<int>(vectorString));
+
+        // Now add the last element with no delimiter
+        vectorString << Vector.back();
+    }
+
+    return vectorString.str();
 }
 
 unsigned long long int euler_eins() {
@@ -117,7 +173,7 @@ int euler_drei(unsigned long long int myNumber) {
     return maxFactor;
 }
 
-bool isPalindromic(int num) {
+bool isPalindromic(unsigned long num) {
 
     string strNum = static_cast<ostringstream*> (&(ostringstream() << num))->str();
     string reverseStrNum = strNum;
@@ -421,6 +477,7 @@ string getDouble(string stringNum) {
         square.erase(square.begin());
     }
 
+    /*
     std::ostringstream doubledString;
 
     //converting vector to string
@@ -432,8 +489,8 @@ string getDouble(string stringNum) {
         // Now add the last element with no delimiter
         doubledString << square.back();
     }
-
-    return doubledString.str();
+     */
+    return vecToString(square);
 }
 
 int euler_sechszehn(int num, int pow) {
@@ -926,22 +983,22 @@ string sumStrings(string numberA, string numberB) {
         i++;
 
     }
+    /*
+        std::ostringstream myNewNumber;
+        if (0 == newNumberVec[0]) {
+            newNumberVec.erase(newNumberVec.begin());
+        }
+        //converting vector to string
+        if (!newNumberVec.empty()) {
+            // Convert all but the last element to avoid a trailing
+            std::copy(newNumberVec.begin(), newNumberVec.end() - 1,
+                    std::ostream_iterator<int>(myNewNumber));
 
-    std::ostringstream myNewNumber;
-    if (0 == newNumberVec[0]) {
-        newNumberVec.erase(newNumberVec.begin());
-    }
-    //converting vector to string
-    if (!newNumberVec.empty()) {
-        // Convert all but the last element to avoid a trailing
-        std::copy(newNumberVec.begin(), newNumberVec.end() - 1,
-                std::ostream_iterator<int>(myNewNumber));
-
-        // Now add the last element with no delimiter
-        myNewNumber << newNumberVec.back();
-    }
-
-    return myNewNumber.str();
+            // Now add the last element with no delimiter
+            myNewNumber << newNumberVec.back();
+        }
+     */
+    return vecToString(newNumberVec);
 
 }
 
@@ -1022,57 +1079,550 @@ long euler_neunundzwanzig() {
 #define LOWERLIMIT 2
 #define UPPERLIMIT 100
 
+    //array mit allen moeglichen Potenzen [a]*[b]
+    bool grid[(UPPERLIMIT - LOWERLIMIT) + 1][(UPPERLIMIT - LOWERLIMIT) + 1];
+    //array fuellen
+    for (int a = 0; a <= UPPERLIMIT - LOWERLIMIT; a++) { //10
+        for (int b = 0; b <= UPPERLIMIT - LOWERLIMIT; b++) {
+            grid[a][b] = true;
+        }
+    }
+    //maximal anzahl moeglicher Ergebnisse mit Dopplungen
     int max = pow((UPPERLIMIT - LOWERLIMIT) + 1, 2);
-    /*
-    long power = 0;
-    long powers[29*29] = {0};
-    bool found;
-    int doubles = 0;
+
+    //durchgehen aller Paarungen
     for (int a = LOWERLIMIT; a <= UPPERLIMIT; a++) {
         for (int b = LOWERLIMIT; b <= UPPERLIMIT; b++) {
-            power = pow(a, b);
-            found = false;
-            //check if number is already in array
-            for (int i = 0; i < max; i++) {
-                if (powers[i] == power) {
-                    found = true;
-                    //cout << "i: " << i << ", a: " << a << ", b:  " << b << endl;
-                    doubles++;
+
+            //zur Vereinfachung, damit beim berechnen der alternativen Basis das Limit nicht schon überschritten wird
+            int minI = static_cast<int> ((b * log(a)) / log(UPPERLIMIT) - 1) + 1;
+
+            if (minI > b + 1) continue;
+
+            //durchgehen aller moeglichen Potenzen fuer alternative Basen
+            for (int i = minI; i < b - 1; i++) {
+                if (1 == i) continue;
+
+                //Berechung der alternativen Basis
+                float newBase = pow(a, static_cast<float> (b) / static_cast<float> (i));
+
+                //wenn alternative Paarung gueltig, dann auf false setzen
+                if (newBase - static_cast<int> (newBase) == 0 && newBase > a && newBase <= UPPERLIMIT) {
+                    int newBaseIndex = (static_cast<int> (newBase)) - LOWERLIMIT;
+                    int newExpIndex = i - LOWERLIMIT;
+
+                    //nur verringer wenn nicht schon geschehen
+                    if (grid[newBaseIndex][newExpIndex] == true) {
+                        max--;
+                        grid[newBaseIndex][newExpIndex] = false;
+                    }
+
+                }
+            }
+        }
+    }
+    return max;
+}
+
+long euler_dreiszig() {
+#define MAX 500000
+    long sum = 0;
+    int fifthPowerSum = 0;
+    for (long i = 2; i <= MAX; i++) {
+        fifthPowerSum = 0;
+        string stringNum = static_cast<ostringstream*> (&(ostringstream() << i))->str();
+        for (int n = 0; n < stringNum.size(); n++) {
+            fifthPowerSum += pow(stringNum[n] - '0', 5);
+        }
+        if (fifthPowerSum == i) {
+            sum += fifthPowerSum;
+        }
+
+    }
+
+    return sum;
+}
+
+bool digits_are_unique(string stringNum, bool zeroExclude = true) {
+    bool digits[10];
+    for (int j = 0; j <= 9; j++) {
+        digits[j] = false;
+    }
+    for (int i = 0; i < stringNum.size(); i++) {
+        int digit = stringNum[i] - '0';
+        if (0 == digit && zeroExclude) return false;
+        if (digits[digit] == false) {
+            digits[digit] = true;
+        } else if (digits[digit] == true) { //digit already true -> not unique
+            return false;
+        }
+    }
+    return true;
+}
+
+bool is_pandigital(string stringNum) {
+    bool digits[stringNum.size()];
+    for (int j = 0; j < stringNum.size(); j++) {
+        digits[j] = false;
+    }
+    for (int i = 0; i < stringNum.size(); i++) {
+        int digit = stringNum[i] - '0';
+        if (0 == digit || digit > stringNum.size()) return false;
+        if (digits[digit - 1] == false) {
+            digits[digit - 1] = true;
+        } else { //digit already true -> not unique
+            return false;
+        }
+    }
+}
+
+long euler_zweiunddreiszig() {
+    std::vector<long> products;
+    long sum = 0;
+    for (int i = 1; i <= 99999; i++) {
+        string si = static_cast<ostringstream*> (&(ostringstream() << i))->str();
+        if (!digits_are_unique(si)) continue;
+        for (int j = i; j <= 99999; j++) {
+            string sj = static_cast<ostringstream*> (&(ostringstream() << j))->str();
+            if (!digits_are_unique(sj)) continue;
+            long product = i*j;
+            string sProduct = static_cast<ostringstream*> (&(ostringstream() << product))->str();
+            string allNums = sProduct + sj + si;
+            if (allNums.size() > 9) break;
+            if (allNums.size() < 9) continue;
+            if (is_pandigital(allNums)) {
+                if (find(products.begin(), products.end(), product) == products.end()) {
+                    products.push_back(product);
+                    sum += product;
+                    cout << i << "*" << j << " = " << product << " -> " << allNums << endl;
+                }
+            }
+        }
+    }
+    return sum;
+}
+
+double transFract(int numerator, int denominator) {
+    double value = 0;
+    if (numerator % 10 == 0 || denominator % 10 == 0) return 0;
+    string sNumerator = static_cast<ostringstream*> (&(ostringstream() << numerator))->str();
+    string sDenominator = static_cast<ostringstream*> (&(ostringstream() << denominator))->str();
+    for (int i = 0; i < sNumerator.size(); i++) {
+        int iDigit = sNumerator[i] - '0';
+        for (int j = 0; j < sDenominator.size(); j++) {
+            int jDigit = sDenominator[j] - '0';
+            if (iDigit == jDigit) {
+                value = ((double) (sNumerator[(i - 1)*(-1)] - '0')) / ((double) (sDenominator[(j - 1)*(-1)] - '0'));
+            }
+        }
+    }
+    return value;
+}
+
+long euler_dreiunddreiszig() {
+    int globalNumerator = 1;
+    int globalDenominator = 1;
+    for (int i = 1; i <= 98; i++) {
+        for (int j = i + 1; j <= 99; j++) {
+            if (transFract(i, j) == (double) i / (double) j) {
+                globalNumerator *= i;
+                globalDenominator *= j;
+            }
+        }
+    }
+    cout << globalNumerator << " / " << globalDenominator << endl;
+    for (int i = 2; i <= globalNumerator; i++) {
+        if (globalNumerator % i == 0 && globalDenominator % i == 0) {
+            globalNumerator /= i;
+            globalDenominator /= i;
+            i = 2;
+        }
+    }
+    return globalDenominator;
+}
+
+unsigned long euler_vierunddreiszig() {
+    unsigned long sum = 0;
+    unsigned long sumFacNum;
+    for (int num = 3; num <= 1000000; num++) {
+        sumFacNum = 0;
+        string sNum = static_cast<ostringstream*> (&(ostringstream() << num))->str();
+        for (int i = 0; i < sNum.size(); i++) {
+            unsigned long iDigit = sNum[i] - '0';
+            sumFacNum += fak(iDigit);
+        }
+        if (sumFacNum == num) {
+            sum += num;
+        }
+    }
+    return sum;
+}
+
+int euler_fuenfunddreiszig() {
+    int count = 0;
+    long prim = 2;
+    long circledPrime;
+    int lastDigit;
+    long multiplicator;
+    int primSize;
+    while (prim < 1000000) {
+        primSize = (static_cast<ostringstream*> (&(ostringstream() << prim))->str()).size();
+        if (1 == primSize) {
+            count++;
+            prim = findNextPrim(prim);
+            continue;
+        }
+        multiplicator = pow(10, primSize - 1);
+        circledPrime = prim;
+        for (int i = 1; i < primSize; i++) {
+            lastDigit = circledPrime % 10;
+            circledPrime = lastDigit * multiplicator + (circledPrime - lastDigit) / 10;
+            if (!primeCalc(circledPrime)) {
+                break;
+            }
+            if (i + 1 == primSize) {
+                count++;
+            }
+        }
+
+        prim = findNextPrim(prim);
+    }
+
+    return count;
+}
+
+unsigned long ConvertToBinary(long n) {
+    unsigned long rem, i = 1, sum = 0;
+
+    do {
+        rem = n % 2;
+        sum = sum + (i * rem);
+        n = n / 2;
+        i = i * 10;
+
+    } while (n > 0);
+
+    return sum;
+}
+
+long euler_sechsunddreiszig() {
+    long sum = 0;
+
+    for (long i = 1; i < 1000000; i++) {
+        if (!isPalindromic(i)) {
+            continue;
+        }
+        if (isPalindromic(ConvertToBinary(i))) {
+            sum += i;
+        }
+
+    }
+
+    return sum;
+}
+
+long euler_siebenunddreiszig() {
+    long sum = 0;
+    int count = 0;
+    long prim = 1;
+    long leftTrimedPrim;
+    long rightTrimedPrim;
+    int primSize;
+    int lastDigit;
+    int firstDigit;
+    long multiplicator;
+
+    while (count < 12) {
+        prim = findNextPrim(prim);
+        //ignore numbers below 10
+        if (prim < 10) {
+            continue;
+        }
+        //determine number of digits
+        primSize = (static_cast<ostringstream*> (&(ostringstream() << prim))->str()).size();
+
+        lastDigit = prim % 10;
+        firstDigit = prim / pow(10, primSize - 1);
+        //break early for last and first digit not prime
+        if (!primeCalc(firstDigit) || !primeCalc(lastDigit)) {
+            continue;
+        }
+
+        rightTrimedPrim = prim;
+        leftTrimedPrim = prim;
+
+        //loop trough all possible trimmed version of prim
+        for (int i = 1; i < primSize; i++) {
+            //needed to get frist digit of remaining trimmed version of prim
+            multiplicator = pow(10, primSize - i);
+
+            lastDigit = rightTrimedPrim % 10;
+            rightTrimedPrim = (rightTrimedPrim - lastDigit) / 10;
+            if (!primeCalc(rightTrimedPrim)) break;
+
+            firstDigit = leftTrimedPrim / multiplicator;
+            leftTrimedPrim -= firstDigit * multiplicator;
+            if (!primeCalc(leftTrimedPrim)) break;
+
+            //no break until here and last loop -> valid truncatable prim
+            if (i + 1 == primSize) {
+                cout << prim << endl;
+                count++;
+                sum += prim;
+            }
+        }
+    }
+    return sum;
+}
+
+long euler_achtunddreiszig() {
+    long pandiMax = 0;
+    long pandi;
+    int rangeMax;
+    int pandiSize = 0;
+    string pandiString;
+    string pandiAddString;
+    int pandiAddSize;
+    int pandiAdd;
+
+    for (int i = 2; i <= 9999; i++) {
+        rangeMax = 1;
+        pandiSize = 0;
+
+        while (pandiSize <= 9) {
+            rangeMax++;
+            pandi = i;
+            for (int j = 2; j <= rangeMax; j++) {
+                pandiAdd = j*i;
+                pandiAddString = static_cast<ostringstream*> (&(ostringstream() << pandiAdd))->str();
+                pandiAddSize = pandiAddString.size();
+                if (!digits_are_unique(pandiAddString)) {
+                    pandiSize = 10;
                     break;
                 }
+                pandi = pandi * pow(10, pandiAddSize) + pandiAdd;
 
+                pandiString = static_cast<ostringstream*> (&(ostringstream() << pandi))->str();
+                pandiSize = pandiString.size();
             }
-            //if number is not in array, asign it to the first element where still 0
-            if (false == found) {
-                for (int i = 0; i < max; i++) {
-                    if (powers[i] == 0) {
-                        powers[i] = power;
-                        break;
-                    }
+
+            if (pandiSize == 9 && pandi > pandiMax) {
+                if (is_pandigital(pandiString)) {
+                    pandiMax = pandi;
+                }
+            }
+
+        }
+    }
+
+    return pandiMax;
+}
+
+int euler_neununddreiszig() {
+    int maxP = 0;
+    int maxCount = 0;
+    int count;
+    for (int p = 1; p <= 1000; p++) {
+        count = 0;
+        for (int a = 1; a <= (p / 3) - 1; a++) {
+            for (int b = a + 1; b <= ((p - a) / 2) - 1; b++) {
+                int c = p - (a + b);
+                if (a * a + b * b == c * c) {
+                    //printf("p = %d {%d, %d, %f} \n", p, a, b, c);
+                    count++;
+                }
+            }
+        }
+        if (count > maxCount) {
+            maxCount = count;
+            maxP = p;
+        }
+    }
+    return maxP;
+
+}
+
+long euler_vierzig() {
+
+    int i = 1;
+    int fak = 1;
+    string addString;
+    string fractions = "";
+    while (fractions.length() < 1000000) {
+        addString = static_cast<ostringstream*> (&(ostringstream() << i))->str();
+        fractions += addString;
+        i++;
+    }
+    for (int j = 1; j <= 1000000; j *= 10) {
+        cout << j << ": " << fractions[j - 1] << endl;
+        fak *= fractions[j - 1] - '0';
+    }
+
+    return fak;
+}
+
+bool prev_permutation(uint64 &n) {
+    std::string n_str = static_cast<ostringstream*> (&(ostringstream() << n))->str();
+    if (std::prev_permutation(n_str.begin(), n_str.end())) {
+        std::stringstream ss;
+        ss << n_str;
+        ss >> n;
+        return true;
+    }
+    return false;
+}
+
+void getHighestPandigitalPrime() {
+    uint64 maxPrime = 0;
+
+    uint64 primes[] = {
+        987654321,
+        87654321,
+        7654321,
+        654321,
+        54321
+    };
+
+    for (int i = 0; i < 5; i++) {
+        uint64 prime = primes[i];
+
+        do {
+            if (!primeCalc(prime))
+                continue;
+            break;
+        } while (prev_permutation(prime));
+
+        if (primeCalc(prime)) {
+            maxPrime = prime;
+            break;
+        }
+    }
+
+    std::cout << maxPrime << std::endl;
+}
+
+//siehe oben getHighestPandigitalPrime() für optimale Loesung
+
+unsigned long long int euler_einundvierzig() {
+    unsigned long long int maxPrim = 0;
+    unsigned long long int actualPrim = 987654321;
+    string stringNum;
+    while (maxPrim == 0) {
+        stringNum = static_cast<ostringstream*> (&(ostringstream() << actualPrim))->str();
+        if (is_pandigital(stringNum)) {
+            //cout << stringNum << endl;
+            if (primeCalc(actualPrim)) {
+                cout << actualPrim << endl;
+                maxPrim = actualPrim;
+                break;
+            }
+        }
+        actualPrim -= 2;
+    }
+
+    return maxPrim;
+}
+
+void euler_zweiundvierzig() {
+    //siehe euler_42.php
+}
+
+bool subStringDivisibility(string sPermutation) {
+    string subString;
+    int subInt;
+    int prim = 1;
+    for (int i = 1; i <= sPermutation.length() - 3; i++) {
+        subString = sPermutation[i];
+        for (int j = i + 1; j <= i + 2; j++) {
+
+            subString += sPermutation[j];
+        }
+        prim = findNextPrim(prim);
+        stringstream convert(subString);
+        if (!(convert >> subInt))
+            subInt = 0;
+        if (subInt % prim != 0)
+            return false;
+    }
+    return true;
+}
+
+long euler_dreiundvierzig() {
+    long sum = 0;
+    uint64 number = 9876543210;
+    std::string sNumber;
+    do {
+        sNumber = static_cast<ostringstream*> (&(ostringstream() << number))->str();
+        if (subStringDivisibility(sNumber) && sNumber.length() == 10) {
+            cout << sNumber << endl;
+            sum += number;
+            continue;
+        }
+    } while (prev_permutation(number));
+    return sum;
+}
+
+int euler_44() {
+    std::vector<long> pentaNums;
+    long pentaSum;
+    long pentaDiff;
+    pentaNums.push_back(1);
+    int n = 2;
+
+    while (true) {
+        pentaNums.push_back((n * (3 * n - 1)) / 2);
+        n++;
+        for (int i = 0; i < n - 1; i++) {
+            pentaSum = pentaNums.back() + pentaNums[i];
+            if (isPenta(pentaSum)) {
+                pentaDiff = pentaNums.back() - pentaNums[i];
+                if (isPenta(pentaDiff)) {
+                    return pentaDiff;
                 }
             }
         }
     }
-    cout << "doubles found: " << doubles << endl;
-     */
-    for (int a = LOWERLIMIT; a <= UPPERLIMIT; a++) { //2
-        for (int b = LOWERLIMIT; b <= UPPERLIMIT; b++) { //6
-            int maxi = (int) (log(UPPERLIMIT) / log(a));
-            for (int i = 2; i <= maxi; i++) { //3
-                if (b % i == 0 || pow(a, (float) b/i) == a*i)  {
-                    if (pow(a, i) <= UPPERLIMIT && b / i >= LOWERLIMIT) {
-                        cout << "a: " << a << ", b: " << b << ", i: " << i << endl;
-                        max--;
-                    }
-                } else {
-                    continue;
-                }
-            }
+}
+
+
+
+bool isPenta(uint64 num) {
+    double pos = (sqrt(1 + (24 * num)) + 1) / 6;
+    if (static_cast<int> (pos) == pos) {
+         cout << num << " is penta for n = " << pos << endl;
+        return true;
+    }
+    return false;
+}
+
+bool isTriangular(uint64 num) {
+    double pos = (sqrt(1 + (8 * num)) -1 ) / 2;
+    if (static_cast<int> (pos) == pos) {
+         cout << num << " is triangle for n = " << pos << endl;
+        return true;
+    }
+    return false;
+}
+
+bool isHex(uint64 num) {
+    double pos = (sqrt(1 + (8 * num)) + 1) / 4;
+    if (static_cast<int> (pos) == pos) {
+        cout << num << " is hex for n = " << pos << endl;
+        return true;
+    }
+    return false;
+}
+
+
+uint64 euler_45() {
+    uint64 triPentaHexStart = 40755;
+    while (triPentaHexStart > 0) {
+        triPentaHexStart++;
+        if (isHex(triPentaHexStart) && isTriangular(triPentaHexStart) && isPenta(triPentaHexStart)) {
+            return triPentaHexStart;
         }
     }
-
-
-    return max;
+    return 0;
 }
 
 int main(int argc, char** argv) {
@@ -1099,6 +1649,22 @@ int main(int argc, char** argv) {
     //cout << "ergebnis für Euler Nr.25 = " << euler_fuenfundzwanzig() << endl;
     //cout << "ergebnis für Euler Nr.27 = " << euler_siebenundzwanzig() << endl;
     //cout << "ergebnis für Euler Nr.28 = " << euler_achtundzwanzig() << endl;
-    cout << "ergebnis für Euler Nr.29 = " << euler_neunundzwanzig() << endl;
-    cout << (int) pow(2, (float) 6 / (float) 3) << endl;
+    //cout << "ergebnis für Euler Nr.29 = " << euler_neunundzwanzig() << endl;
+    //cout << "ergebnis für Euler Nr.30 = " << euler_dreiszig() << endl;
+    //cout << "ergebnis für Euler Nr.32 = " << euler_zweiunddreiszig() << endl;
+    //cout << "ergebnis für Euler Nr.33 = " << euler_dreiunddreiszig() << endl;
+    //cout << "ergebnis für Euler Nr.34 = " << euler_vierunddreiszig() << endl;
+    //cout << "ergebnis für Euler Nr.35 = " << euler_fuenfunddreiszig() << endl;
+    //cout << "ergebnis für Euler Nr.36 = " << euler_sechsunddreiszig() << endl;
+    //cout << "ergebnis für Euler Nr.37 = " << euler_siebenunddreiszig() << endl;
+    //cout << "ergebnis für Euler Nr.38 = " << euler_achtunddreiszig() << endl;
+    //cout << "ergebnis für Euler Nr.39 = " << euler_neununddreiszig() << endl;
+    //cout << "ergebnis für Euler Nr.40 = " << euler_vierzig() << endl;
+    //cout << "ergebnis für Euler Nr.41 = " << euler_einundvierzig() << endl;
+    //cout << "ergebnis für Euler Nr.42 = " << euler_zweiundvierzig() << endl;
+    //cout << "ergebnis für Euler Nr.43 = " << euler_dreiundvierzig() << endl;
+    //cout << "ergebnis für Euler Nr.44 = " << euler_44() << endl;
+     cout << "ergebnis für Euler Nr.45 = " << euler_45() << endl;
+     cout << 536870913 * 3 << endl;
+     if (isPenta(40755)) cout << "ist";
 }

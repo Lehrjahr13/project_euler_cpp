@@ -851,10 +851,10 @@ long sum_of_divisors(int iNum) {
     //prüfung auf 1 und iNum selbst überspringen
     long iSum = 1;
     if (2 == iNum) return iSum;
-    unsigned long sqrtiNum = sqrt(iNum);
+    unsigned long maxDivisor = sqrt(iNum);
     //ungerade sind nur durch ungerade teilbar -> gerade überspringen
     if (iNum % 2 != 0) {
-        for (int i = 3; i <= sqrtiNum; i += 2) {
+        for (int i = 3; i <= maxDivisor; i += 2) {
             if (iNum % i == 0) {
                 iSum += i;
                 //doppeltes addieren von Zahlen vermeiden
@@ -864,7 +864,7 @@ long sum_of_divisors(int iNum) {
             }
         }
     } else {
-        for (int i = 2; i <= sqrtiNum; i++) {
+        for (int i = 2; i <= maxDivisor; i++) {
             if (iNum % i == 0) {
                 iSum += i;
                 //doppeltes addieren von Zahlen vermeiden
@@ -1584,21 +1584,19 @@ int euler_44() {
     }
 }
 
-
-
 bool isPenta(uint64 num) {
     double pos = (sqrt(1 + (24 * num)) + 1) / 6;
     if (static_cast<int> (pos) == pos) {
-         cout << num << " is penta for n = " << pos << endl;
+        cout << num << " is penta for n = " << pos << endl;
         return true;
     }
     return false;
 }
 
 bool isTriangular(uint64 num) {
-    double pos = (sqrt(1 + (8 * num)) -1 ) / 2;
+    double pos = (sqrt(1 + (8 * num)) - 1) / 2;
     if (static_cast<int> (pos) == pos) {
-         cout << num << " is triangle for n = " << pos << endl;
+        cout << num << " is triangle for n = " << pos << endl;
         return true;
     }
     return false;
@@ -1613,7 +1611,6 @@ bool isHex(uint64 num) {
     return false;
 }
 
-
 uint64 euler_45() {
     uint64 triPentaHexStart = 40755;
     while (triPentaHexStart > 0) {
@@ -1623,6 +1620,100 @@ uint64 euler_45() {
         }
     }
     return 0;
+}
+
+uint64 euler_46() {
+    uint64 myNum = 9;
+    uint64 prim;
+    uint64 halfDiff;
+    double halfDiffSqrt;
+    while (true) {
+        prim = findPrevPrim(myNum);
+        while (prim > 0) {
+            halfDiff = (myNum - prim) * 0.5;
+            halfDiffSqrt = sqrt(halfDiff);
+            if (static_cast<int> (halfDiffSqrt) == halfDiffSqrt) {
+                break;
+            } else {
+                prim = findPrevPrim(prim);
+                if (prim != 0) {
+                    continue;
+                } else {
+                    return myNum;
+                }
+            }
+
+        }
+        do {
+            myNum += 2;
+        } while (primeCalc(myNum));
+    }
+}
+
+uint euler_47() {
+    long firstNumFactors[4];
+    long lastFactors[4];
+    long allFactors[16];
+    uint iNum = 2;
+    uint acctualNum;
+    uint factor;
+    long maxDivisor;
+    long divisor;
+    int divisorPow;
+    int divisorAmt;
+    bool found = false;
+
+
+    while (!found) {
+        for (uint i = iNum; i <= iNum + 3; i++) {
+            acctualNum = i;
+            maxDivisor = sqrt(acctualNum);
+            //für ungerade Zahlen
+            divisorPow = 0;
+            divisorAmt = 0;
+            (i % 2 != 0) ? divisor = 3 : divisor = 2;
+            //Teiler ermittlen
+            while (divisor <= maxDivisor) {
+                //mehrfache Teilbarkeit mit einkalkulieren
+                while (acctualNum % divisor == 0) {
+                    acctualNum = acctualNum / divisor;
+                    divisorPow++;
+                }
+                divisorAmt++;
+                if (divisorAmt <= 4) {
+                    factor = pow(divisor, divisorPow);
+                    cout << "Teiler nr." << divisorAmt << "= " << factor;
+                    //für erstes Array
+                    if (i == iNum) {
+                        allFactors[divisorAmt - 1] = factor;
+                        firstNumFactors[divisorAmt - 1] = factor;
+                        //für die anderen
+                    } else {
+                        for (int j = 0; j <= (i - iNum)*4 + divisorAmt - 2; j++) {
+                            if (allFactors[j] == factor) {
+                                break;
+                            }
+                        }
+                        allFactors[(i - iNum)*4 + divisorAmt - 1] = factor;
+                    }
+                    //mehr als 4 Teiler
+                } else {
+                    break;
+                }
+                (i % 2 != 0) ? divisor += 2 : divisor++;
+            }
+            if (divisorAmt < 4) {
+                found = false;
+                break;
+            } else {
+                cout << endl << i << " hat 4 teiler" << endl;
+                found = true;
+            }
+        }
+        iNum++;
+    }
+
+    return iNum;
 }
 
 int main(int argc, char** argv) {
@@ -1664,7 +1755,7 @@ int main(int argc, char** argv) {
     //cout << "ergebnis für Euler Nr.42 = " << euler_zweiundvierzig() << endl;
     //cout << "ergebnis für Euler Nr.43 = " << euler_dreiundvierzig() << endl;
     //cout << "ergebnis für Euler Nr.44 = " << euler_44() << endl;
-     cout << "ergebnis für Euler Nr.45 = " << euler_45() << endl;
-     cout << 536870913 * 3 << endl;
-     if (isPenta(40755)) cout << "ist";
+    //cout << "ergebnis für Euler Nr.45 = " << euler_45() << endl;
+    //cout << "ergebnis für Euler Nr.46 = " << euler_46() << endl;
+    cout << "ergebnis für Euler Nr.46 = " << euler_47() << endl;
 }
